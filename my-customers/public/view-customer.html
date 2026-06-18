@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Customer - My Customers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto">
+            <a href="index.html" class="text-2xl font-bold">My Customers</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6 max-w-2xl">
+        <div class="bg-white rounded-lg shadow-xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Customer Details</h1>
+                <a href="index.html" class="text-blue-600 hover:underline">&larr; Back to Board</a>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="text-center py-10">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Loading customer data...</p>
+            </div>
+
+            <!-- Customer Form (Hidden until loaded) -->
+            <form id="customer-form" class="hidden space-y-6">
+                <!-- Photo Section -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Customer Photo</label>
+                    <div class="flex items-center space-x-4">
+                        <img id="photo-preview" src="https://via.placeholder.com/150" class="w-24 h-24 object-cover rounded-lg border" alt="Preview">
+                        <input type="file" id="photo-input" accept="image/*" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                </div>
+
+                <!-- Name -->
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-gray-700">Name</label>
+                    <input type="text" id="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="status" class="block text-sm font-semibold text-gray-700">Status</label>
+                    <select id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <option value="Planning">Planning</option>
+                        <option value="In-progress">In-progress</option>
+                        <option value="Review">Review</option>
+                        <option value="Complete">Complete</option>
+                    </select>
+                </div>
+
+                <!-- Account Balance -->
+                <div>
+                    <label for="balance" class="block text-sm font-semibold text-gray-700">Account Balance ($)</label>
+                    <input type="number" id="balance" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                </div>
+
+                <!-- Invoice (Placeholder) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Invoice</label>
+                    <button type="button" onclick="alert('Invoice generation feature coming soon!')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition">
+                        Generate invoice
+                    </button>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="notes" class="block text-sm font-semibold text-gray-700">Notes</label>
+                    <textarea id="notes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-between items-center pt-6 border-t">
+                    <button type="button" id="delete-btn" class="bg-red-100 text-red-600 px-6 py-2 rounded font-semibold hover:bg-red-200 transition">
+                        Delete Customer
+                    </button>
+                    <button type="submit" id="save-btn" class="bg-blue-600 text-white px-8 py-2 rounded font-semibold hover:bg-blue-700 transition">
+                        Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Feedback Message -->
+    <div id="feedback" class="fixed bottom-4 right-4 hidden bg-gray-800 text-white p-4 rounded-lg shadow-xl"></div>
+
+    <script type="module" src="view-customer.js"></script>
+</body>
+</html>

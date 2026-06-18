@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Streamlit
+streamlit_log.txt
+
+# Environment/System
+.cache/
+.config/
+.npm/
+.gemini/
+.local/
+.codeoss/
+.rustup/
+.streamlit/
+.vscode/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*

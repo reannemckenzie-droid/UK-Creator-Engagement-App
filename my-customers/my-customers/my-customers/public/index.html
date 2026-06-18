@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Firebase Hosting Setup Complete</title>
+
+    <script defer src="/__/firebase/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/10.8.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <style media="screen">
+      :root {
+        --deep-blue: #0A192F;
+        --ocean-blue: #172A45;
+        --sea-foam: #64FFDA;
+        --aqua: #00B4D8;
+        --light-blue: #90E0EF;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--deep-blue) 0%, var(--ocean-blue) 100%);
+        color: #F4F9F9;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Animated Wave Background Effect */
+      .wave-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        line-height: 0;
+        z-index: 1;
+      }
+
+      .wave-container svg {
+        position: relative;
+        display: block;
+        width: calc(300% + 1.3px);
+        height: 150px;
+        animation: wave-move 12s ease-in-out infinite alternate;
+      }
+
+      @keyframes wave-move {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+
+      /* Main Card */
+      #welcome {
+        background: rgba(23, 42, 69, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        padding: 3rem 2rem;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        max-width: 480px;
+        width: 90%;
+        text-align: center;
+        position: relative;
+        z-index: 10;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+
+      /* Water Droplet / Splash Icon */
+      .icon-container {
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle at 35% 35%, var(--light-blue), var(--aqua));
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 20px rgba(0, 180, 216, 0.5);
+        animation: liquid 4s ease-in-out infinite;
+      }
+
+      @keyframes liquid {
+        0%, 100% { border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; }
+        50% { border-radius: 45% 55% 45% 55% / 55% 45% 55% 45%; }
+      }
+
+      .icon-container svg {
+        width: 40px;
+        height: 40px;
+        fill: var(--deep-blue);
+      }
+
+      h2 {
+        color: var(--sea-foam);
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.5px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(to right, #FFF, var(--light-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      p {
+        color: #A8B2D1;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      /* Load Status Console */
+      #load {
+        background: rgba(10, 25, 47, 0.6);
+        border-radius: 12px;
+        padding: 1rem;
+        font-family: Courier, monospace;
+        font-size: 0.85rem;
+        color: var(--light-blue);
+        text-align: left;
+        border: 1px solid rgba(144, 224, 239, 0.1);
+      }
+
+      /* Ripple Button Effect */
+      .btn {
+        display: inline-block;
+        background: transparent;
+        color: var(--sea-foam);
+        border: 1px solid var(--sea-foam);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        background: rgba(100, 255, 218, 0.1);
+        box-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="welcome">
+      <div class="icon-container">
+        <svg viewBox="0 0 24 24">
+          <path d="M12,2.69C12,2.69 19,10.12 19,15A7,7 0 0,1 12,22A7,7 0 0,1 5,15C5,10.12 12,2.69 12,2.69M12,5.19C10.5,7.74 7,12.55 7,15A5,5 0 0,0 12,20A5,5 0 0,0 17,15C17,12.55 13.5,7.74 12,5.19Z" />
+        </svg>
+      </div>
+      <h2>Firebase Hosting</h2>
+      <h1>Setup Flowing Smoothly</h1>
+      <p>Your new aqua-themed web app is successfully set up and ready to make some waves. Time to dive into your code!</p>
+      
+      <div id="load">Checking currents (initializing Firebase)...</div>
+
+      <a href="https://firebase.google.com/docs/hosting/" target="_blank" class="btn">Read Hosting Docs</a>
+    </div>
+
+    <div class="wave-container">
+      <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,0V46.29c47.79,25.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,42.4V120H0Z" fill="rgba(0, 180, 216, 0.15)"></path>
+      </svg>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.getElementById('load');
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 'database', 'firestore',
+            'functions', 'messaging', 'storage',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `✓ Firebase SDK streams online with: ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error tracking the tide. Check the console.';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Customers - CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .kanban-column {
+            min-height: 500px;
+        }
+        .drag-over {
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 2px dashed #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold">My Customers</a>
+            <button id="add-customer-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold transition">
+                + Add Customer
+            </button>
+        </div>
+    </nav>
+
+    <!-- Kanban Board -->
+    <main class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Planning Column -->
+            <div class="bg-white rounded-lg shadow-md p-4 flex flex-col">
+                <h2 class="text-xl font-bold mb-4 pb-2 border-b text-blue-700">Planning</h2>
+                <div id="Planning" class="kanban-column flex-grow space-y-4">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- In-progress Column -->
+            <div class="bg-white rounded-lg shadow-md p-4 flex flex-col">
+                <h2 class="text-xl font-bold mb-4 pb-2 border-b text-yellow-600">In-progress</h2>
+                <div id="In-progress" class="kanban-column flex-grow space-y-4">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- Review Column -->
+            <div class="bg-white rounded-lg shadow-md p-4 flex flex-col">
+                <h2 class="text-xl font-bold mb-4 pb-2 border-b text-green-600">Review</h2>
+                <div id="Review" class="kanban-column flex-grow space-y-4">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Feedback Message -->
+    <div id="feedback" class="fixed bottom-4 right-4 hidden bg-gray-800 text-white p-4 rounded-lg shadow-xl"></div>
+
+    <script type="module" src="index.js"></script>
+</body>
+</html>
