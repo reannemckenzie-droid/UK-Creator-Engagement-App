@@ -56,14 +56,14 @@ st.markdown("""
 
 # --- 3. SIDEBAR NAVIGATION ---
 st.sidebar.title("UK Creator Engagement")
-page = st.sidebar.radio("Navigation", ["Browse Creators", "Creator Engagement Request"])
+page = st.sidebar.radio("Navigation", ["Browse Creators", "UK Creator Requests"])
 
 st.sidebar.divider()
-st.sidebar.subheader("Configuration")
-SPREADSHEET_URL = st.sidebar.text_input(
-    "Google Sheet URL", 
-    "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit?resourcekey=0-EdAPbTcONZTkWuJ46XHyzw&gid=349889363#gid=349889363"
-)
+with st.sidebar.expander("Admin Configuration"):
+    SPREADSHEET_URL = st.text_input(
+        "Google Sheet URL", 
+        "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit?resourcekey=0-EdAPbTcONZTkWuJ46XHyzw&gid=349889363#gid=349889363"
+    )
 
 # --- 2. AUTHENTICATION (ADC) ---
 def get_gspread_client():
@@ -105,7 +105,6 @@ except Exception as e:
 # --- 4. PAGE 1: BROWSE CREATORS ---
 if page == "Browse Creators":
     st.title("UK Creator Engagement")
-    st.subheader("Specific Content Vertical")
     
     # Load Data
     try:
@@ -130,6 +129,7 @@ if page == "Browse Creators":
     col_bio = find_col(data, ['Bio', 'Creator Bio'])
     col_link = find_col(data, ['Channel Link', 'Channel URL'])
     col_img = find_col(data, ['YouTube Profile Picture', 'Image URL', 'Photo URL'])
+    vertical_col = find_col(data, ['Specific Vertical', 'Vertical'])
 
     # Helper to parse subscriber counts for sorting
     def parse_subs(sub_count):
@@ -148,45 +148,79 @@ if page == "Browse Creators":
 
     data['subs_numeric'] = data[col_subscribers].apply(parse_subs)
 
-    # Filter out metadata rows that shouldn't appear as creator cards
+    # Filter out metadata rows and ensure only rows with a Channel Name are processed
     exclude_list = [
         "Original Source",
         "[FYIO] Gemini prompt used to retrieve the info",
-        "[For SPMs] Description for validation of each column"
+        "[For SPMs] Description for validation of each column",
+        "YouTube",
+        "📺 View Channel",
+        "👥 YouTube Subscribers",
+        "Gemini",
+        "N/A",
+        "👥 N/A Subscribers",
+        "What is the person in Column S is best known for",
+        "What is the creator best known for"
     ]
-    name_cols = ['Creator Name', 'Name', col_channel_name]
-    for col in name_cols:
-        if col in data.columns:
-            data = data[~data[col].astype(str).str.contains('|'.join([re.escape(x) for x in exclude_list]), case=False, na=False)]
-
-    # Selection Grid for Verticals
-    vertical_col = find_col(data, ['Specific Vertical', 'Vertical'])
-    if vertical_col in data.columns:
-        available_verticals = ["All"] + sorted([str(v) for v in data[vertical_col].unique() if v])
-    else:
-        available_verticals = ["All"]
     
-    col_filter1, col_filter2 = st.columns(2)
+    # Ensure Channel Name column exists and has content
+    filtered_creators = data[data[col_channel_name].astype(str).str.strip().ne('')]
+    
+    # Exclude metadata from the main list
+    filtered_creators = filtered_creators[~filtered_creators[col_channel_name].astype(str).str.contains('|'.join([re.escape(x) for x in exclude_list]), case=False, na=False)]
+
+    # Filter Controls
+    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    
     with col_filter1:
-        selected_vertical = st.selectbox("Filter by Category:", available_verticals)
+        search_query = st.text_input("Search Creators:", placeholder="Search by name, category, or bio...")
+    
     with col_filter2:
+        if vertical_col in data.columns:
+            # User requested to ignore cells L3, L4, and L5 (indices 0, 1, 2)
+            vertical_data_for_filter = data.drop([0, 1, 2]) if len(data) > 3 else data
+            available_verticals = ["All"] + sorted([str(v) for v in vertical_data_for_filter[vertical_col].unique() if v and str(v) not in exclude_list])
+        else:
+            available_verticals = ["All"]
+        selected_vertical = st.selectbox("Filter by Category:", available_verticals)
+
+    with col_filter3:
         sort_option = st.selectbox("Sort by Subscribers:", ["Default", "Smallest to Largest", "Largest to Smallest"])
     
-    # --- TASK #2: FILTERING LOGIC ---
-    if selected_vertical == "All":
-        filtered_creators = data
-    else:
-        filtered_creators = data[data[vertical_col] == selected_vertical]
+    # Apply Vertical Filter
+    if selected_vertical != "All":
+        filtered_creators = filtered_creators[filtered_creators[vertical_col] == selected_vertical]
 
-    # Apply sorting
+    # Apply Search Logic
+    if search_query:
+        query = search_query.lower()
+        search_mask = (
+            filtered_creators[col_channel_name].astype(str).str.lower().str.contains(query) |
+            filtered_creators[vertical_col].astype(str).str.lower().str.contains(query) |
+            filtered_creators[col_bio].astype(str).str.lower().str.contains(query)
+        )
+        final_creators = filtered_creators[search_mask]
+        
+        if final_creators.empty:
+            st.warning(f"Not found: '{search_query}'")
+            import difflib
+            # Get suggestions from all possible searchable fields
+            all_terms = filtered_creators[col_channel_name].unique().tolist() + \
+                        filtered_creators[vertical_col].unique().tolist()
+            suggestions = difflib.get_close_matches(query, [str(x) for x in all_terms if x], n=5, cutoff=0.3)
+            if suggestions:
+                st.info(f"Did you mean: {', '.join(set(suggestions))}?")
+            filtered_creators = final_creators # Still empty
+        else:
+            filtered_creators = final_creators
+
+    # Sorting
     if sort_option == "Smallest to Largest":
         filtered_creators = filtered_creators.sort_values(by='subs_numeric', ascending=True)
     elif sort_option == "Largest to Smallest":
         filtered_creators = filtered_creators.sort_values(by='subs_numeric', ascending=False)
 
-    # Display Grid
-    cols = st.columns(3)
-
+    # Display Uniform Grid
     def format_subs(sub_count):
         try:
             # Clean and normalize input
@@ -214,39 +248,50 @@ if page == "Browse Creators":
         except:
             return str(sub_count)
 
-    for index, (idx, creator) in enumerate(filtered_creators.iterrows()):
-        with cols[index % 3]:
-            # Get data with fallbacks for flexible sheet headers
-            channel_name = creator.get(col_channel_name, 'N/A')
-            subscribers = format_subs(creator.get(col_subscribers, '0'))
-            bio = creator.get(col_bio, 'No bio available.')
-            channel_link = creator.get(col_link, '#')
-            
-            # Use the profile picture from creators youtube channel url
-            yt_img = get_yt_profile_pic(channel_link)
-            image_url = yt_img if yt_img else creator.get(col_img, 'https://via.placeholder.com/150')
+    # Use container for grid to ensure alignment
+    grid_container = st.container()
+    
+    # Define columns per row
+    COLS_PER_ROW = 3
+    
+    rows = [filtered_creators.iloc[i:i+COLS_PER_ROW] for i in range(0, len(filtered_creators), COLS_PER_ROW)]
 
-            # Sleek Creator Card UI (Previous Format)
-            st.markdown(f"""
-            <div class="creator-card">
-                <img src="{image_url}" style="width:100%; border-radius:10px; margin-bottom:15px; height: 150px; object-fit: cover;">
-                <h3 style="margin:0;">{channel_name}</h3>
-                <p style="margin-bottom:5px;">
-                    <a href="{channel_link}" target="_blank" style="color:#FF0000; font-weight:bold; text-decoration:none;">📺 {channel_name}</a>
-                </p>
-                <p style="margin-bottom:10px;">👥 <b>{subscribers}</b> Subscribers</p>
-                <div style="font-size:0.85rem; color:#606060; background:#f9f9f9; padding:10px; border-radius:8px; min-height: 60px;">
-                    {bio}
+    for row_data in rows:
+        cols = st.columns(COLS_PER_ROW)
+        for i, (idx, creator) in enumerate(row_data.iterrows()):
+            with cols[i]:
+                # Get data with fallbacks for flexible sheet headers
+                channel_name = creator.get(col_channel_name, 'N/A')
+                subscribers = format_subs(creator.get(col_subscribers, '0'))
+                bio = creator.get(col_bio, 'No bio available.')
+                channel_link = creator.get(col_link, '#')
+                
+                # Use the profile picture from creators youtube channel url
+                yt_img = get_yt_profile_pic(channel_link)
+                image_url = yt_img if yt_img else creator.get(col_img, 'https://via.placeholder.com/150')
+
+                # Sleek Creator Card UI
+                st.markdown(f"""
+                <div class="creator-card">
+                    <img src="{image_url}" style="width:100%; border-radius:10px; margin-bottom:15px; height: 180px; object-fit: contain; background-color: #f8f9fa;">
+                    <h3 style="margin:0; font-size: 1.1rem; min-height: 2.5em; line-height: 1.2;">{channel_name}</h3>
+                    <p style="margin-bottom:5px; font-size: 0.9rem;">
+                        <a href="{channel_link}" target="_blank" style="color:#FF0000; font-weight:bold; text-decoration:none;">📺 {channel_name}</a>
+                    </p>
+                    <p style="margin-bottom:10px;">👥 <b>{subscribers}</b> Subscribers</p>
+                    <div style="font-size:0.85rem; color:#606060; background:#f9f9f9; padding:10px; border-radius:8px; min-height: 80px; max-height: 80px; overflow: hidden;">
+                        {bio}
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
-# --- 5. PAGE 2: REQUEST CAMPAIGN ---
-elif page == "Request Campaign":
-    st.title("Campaign Command Center")
+# --- 5. PAGE 2: UK CREATOR REQUESTS ---
+elif page == "UK Creator Requests":
+    st.title("UK Creator Requests")
     
     st.markdown("### 📥 Submit New Request")
     st.link_button("Open Google Campaign Form", "https://docs.google.com/forms/d/e/1FAIpQLSel6354_mdG88FlKC7qSiuD3S7p74oQiOw1NCipAeRTdABfOg/viewform", type="primary")
+    st.markdown("Want more details on the UK Creator Request Process go to: [go/ukcreatorengagement](http://go/ukcreatorengagement)")
     
     st.divider()
     
