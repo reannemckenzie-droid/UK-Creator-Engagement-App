@@ -6,7 +6,16 @@ from google.auth.transport.requests import Request
 import re
 import requests
 from shortlist_generator import generate_shortlist
+# 1. Pull your secret key from the Streamlit vault
+creds_dict = json.loads(st.secrets["gcp_key"])
 
+# 2. Convert it into the format Google expects
+credentials = Credentials.from_authorized_user_info(creds_dict)
+
+# 3. Use the 'credentials' variable inside your Google tool initialization!
+# For example, if you are using Vertex AI / Gemini, it looks like this:
+# import vertexai
+# vertexai.init(project="uk-creator-engagement", location="us-central1", credentials=credentials)
 # --- 1. CONFIG & BRANDING ---
 st.set_page_config(page_title="UK Creator Engagement", layout="wide")
 
