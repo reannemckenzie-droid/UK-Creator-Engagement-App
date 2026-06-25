@@ -157,8 +157,8 @@ try:
     gc = get_gspread_client()
     sh = gc.open_by_url(SPREADSHEET_URL)
 except Exception as e:
-    st.sidebar.error("Authentication or Spreadsheet Access Failed.")
-    st.info("Ensure you have run 'gcloud auth application-default login' and the spreadsheet is shared correctly.")
+    st.sidebar.error(f"Spreadsheet Access Failed: {e}")
+    st.info("Double-check that the Spreadsheet URL is correct and that the account you used to generate the key has access to it.")
     st.stop()
 
 # --- 4. PAGE 1: BROWSE CREATORS ---
