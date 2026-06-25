@@ -3,7 +3,7 @@ import pandas as pd
 import gspread
 import google.auth
 from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 import re
 import json
 import requests
@@ -12,23 +12,27 @@ from shortlist_generator import generate_shortlist
 # --- 2. AUTHENTICATION ---
 # 1. Pull your secret key from the Streamlit vault
 try:
-    creds_dict = json.loads(st.secrets["gcp_key"])
-    # 2. Convert it into the format Google expects
-    credentials = Credentials.from_authorized_user_info(creds_dict)
+    if "gcp_key" in st.secrets:
+        creds_dict = json.loads(st.secrets["gcp_key"])
+        # 2. Convert it into the format Google expects for a Service Account
+        credentials = service_account.Credentials.from_service_account_info(
+            creds_dict, 
+            scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        )
+        st.sidebar.success("✅ Service Account Key Loaded")
+    else:
+        credentials = None
+        st.sidebar.warning("⚠️ No gcp_key found in secrets.")
 except Exception as e:
     credentials = None
+    st.sidebar.error(f"❌ Error loading credentials: {e}")
 
 def get_gspread_client():
-    scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
-    
     if credentials:
-        # If we have explicit credentials from secrets, use them
         return gspread.authorize(credentials)
     
     # Fallback to Application Default Credentials (ADC)
+    scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds, project = google.auth.default(scopes=scopes)
     return gspread.authorize(creds)
 
