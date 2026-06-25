@@ -26,12 +26,14 @@ try:
         # Detect type and load accordingly
         if creds_dict.get("type") == "service_account":
             credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
-            st.sidebar.success("✅ Service Account Key Loaded")
+            email = creds_dict.get("client_email", "Unknown Service Account")
+            st.sidebar.success(f"✅ Service Account Loaded: {email}")
         else:
             # Fallback for "authorized_user" type (like from ADC)
             import google.oauth2.credentials
             credentials = google.oauth2.credentials.Credentials.from_authorized_user_info(creds_dict, scopes=scopes)
-            st.sidebar.success("✅ User Credentials Loaded")
+            email = creds_dict.get("account", "Unknown User")
+            st.sidebar.success(f"✅ User Credentials Loaded: {email}")
     else:
         credentials = None
         st.sidebar.warning("⚠️ No gcp_key found in secrets.")
