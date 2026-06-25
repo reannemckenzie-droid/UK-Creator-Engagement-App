@@ -3,19 +3,35 @@ import pandas as pd
 import gspread
 import google.auth
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 import re
+import json
 import requests
 from shortlist_generator import generate_shortlist
+
+# --- 2. AUTHENTICATION ---
 # 1. Pull your secret key from the Streamlit vault
-creds_dict = json.loads(st.secrets["gcp_key"])
+try:
+    creds_dict = json.loads(st.secrets["gcp_key"])
+    # 2. Convert it into the format Google expects
+    credentials = Credentials.from_authorized_user_info(creds_dict)
+except Exception as e:
+    credentials = None
 
-# 2. Convert it into the format Google expects
-credentials = Credentials.from_authorized_user_info(creds_dict)
+def get_gspread_client():
+    scopes = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
+    
+    if credentials:
+        # If we have explicit credentials from secrets, use them
+        return gspread.authorize(credentials)
+    
+    # Fallback to Application Default Credentials (ADC)
+    creds, project = google.auth.default(scopes=scopes)
+    return gspread.authorize(creds)
 
-# 3. Use the 'credentials' variable inside your Google tool initialization!
-# For example, if you are using Vertex AI / Gemini, it looks like this:
-# import vertexai
-# vertexai.init(project="uk-creator-engagement", location="us-central1", credentials=credentials)
 # --- 1. CONFIG & BRANDING ---
 st.set_page_config(page_title="UK Creator Engagement", layout="wide")
 
