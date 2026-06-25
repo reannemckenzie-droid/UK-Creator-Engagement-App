@@ -13,7 +13,15 @@ from shortlist_generator import generate_shortlist
 # 1. Pull your secret key from the Streamlit vault
 try:
     if "gcp_key" in st.secrets:
-        creds_dict = json.loads(st.secrets["gcp_key"])
+        creds_data = st.secrets["gcp_key"]
+        
+        # Handle cases where secrets might be a dict already or a string
+        if isinstance(creds_data, str):
+            creds_dict = json.loads(creds_data)
+        else:
+            # Streamlit secrets can be a nested AttrDict
+            creds_dict = dict(creds_data)
+
         # 2. Convert it into the format Google expects for a Service Account
         credentials = service_account.Credentials.from_service_account_info(
             creds_dict, 
@@ -25,7 +33,13 @@ try:
         st.sidebar.warning("⚠️ No gcp_key found in secrets.")
 except Exception as e:
     credentials = None
-    st.sidebar.error(f"❌ Error loading credentials: {e}")
+    # Debug: show which keys were found to help the user identify missing ones
+    found_keys = list(creds_dict.keys()) if 'creds_dict' in locals() else []
+    st.sidebar.error(f"❌ Credential Format Error: {e}")
+    if found_keys:
+        st.sidebar.info(f"Keys found in your secret: {', '.join(found_keys)}")
+    else:
+        st.sidebar.info("The secret could not be parsed as a JSON object.")
 
 def get_gspread_client():
     if credentials:
