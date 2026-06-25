@@ -19,27 +19,25 @@ try:
         if isinstance(creds_data, str):
             creds_dict = json.loads(creds_data)
         else:
-            # Streamlit secrets can be a nested AttrDict
             creds_dict = dict(creds_data)
 
-        # 2. Convert it into the format Google expects for a Service Account
-        credentials = service_account.Credentials.from_service_account_info(
-            creds_dict, 
-            scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        )
-        st.sidebar.success("✅ Service Account Key Loaded")
+        scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        
+        # Detect type and load accordingly
+        if creds_dict.get("type") == "service_account":
+            credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
+            st.sidebar.success("✅ Service Account Key Loaded")
+        else:
+            # Fallback for "authorized_user" type (like from ADC)
+            import google.oauth2.credentials
+            credentials = google.oauth2.credentials.Credentials.from_authorized_user_info(creds_dict, scopes=scopes)
+            st.sidebar.success("✅ User Credentials Loaded")
     else:
         credentials = None
         st.sidebar.warning("⚠️ No gcp_key found in secrets.")
 except Exception as e:
     credentials = None
-    # Debug: show which keys were found to help the user identify missing ones
-    found_keys = list(creds_dict.keys()) if 'creds_dict' in locals() else []
-    st.sidebar.error(f"❌ Credential Format Error: {e}")
-    if found_keys:
-        st.sidebar.info(f"Keys found in your secret: {', '.join(found_keys)}")
-    else:
-        st.sidebar.info("The secret could not be parsed as a JSON object.")
+    st.sidebar.error(f"❌ Credential Loading Error: {e}")
 
 def get_gspread_client():
     if credentials:
