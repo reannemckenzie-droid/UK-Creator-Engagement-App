@@ -100,26 +100,17 @@ st.markdown("""
 st.sidebar.title("UK Creator Engagement")
 page = st.sidebar.radio("Navigation", ["Browse Creators", "UK Creator Requests"])
 
-# --- 2. AUTHENTICATION (ADC) ---
-def get_gspread_client():
-    scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
-    credentials, project = google.auth.default(scopes=scopes)
-    return gspread.authorize(credentials)
-
+st.sidebar.divider()
 try:
     gc = get_gspread_client()
     # Initial connection to get sheet list for admin config
-    # We use a hardcoded fallback or the current value
     temp_url = "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit"
     sh_init = gc.open_by_url(temp_url)
     all_worksheets = [w.title for w in sh_init.worksheets()]
-except:
+except Exception as e:
+    # If this fails, we provide fallback list
     all_worksheets = ["H1 2026 Database", "UK Creator Request Form"]
 
-st.sidebar.divider()
 with st.sidebar.expander("Admin Configuration"):
     SPREADSHEET_URL = st.text_input(
         "Google Sheet URL", 
@@ -154,7 +145,7 @@ def get_yt_profile_pic(url):
     return None
 
 try:
-    gc = get_gspread_client()
+    # We already have gc from the initial connection above
     sh = gc.open_by_url(SPREADSHEET_URL)
 except Exception as e:
     st.sidebar.error(f"Spreadsheet Access Failed: {e}")
