@@ -5,6 +5,7 @@ import google.auth
 from google.auth.transport.requests import Request
 import re
 import requests
+from shortlist_generator import generate_shortlist
 
 # --- 1. CONFIG & BRANDING ---
 st.set_page_config(page_title="UK Creator Engagement", layout="wide")
@@ -58,13 +59,6 @@ st.markdown("""
 st.sidebar.title("UK Creator Engagement")
 page = st.sidebar.radio("Navigation", ["Browse Creators", "UK Creator Requests"])
 
-st.sidebar.divider()
-with st.sidebar.expander("Admin Configuration"):
-    SPREADSHEET_URL = st.text_input(
-        "Google Sheet URL", 
-        "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit?resourcekey=0-EdAPbTcONZTkWuJ46XHyzw&gid=349889363#gid=349889363"
-    )
-
 # --- 2. AUTHENTICATION (ADC) ---
 def get_gspread_client():
     scopes = [
@@ -73,6 +67,30 @@ def get_gspread_client():
     ]
     credentials, project = google.auth.default(scopes=scopes)
     return gspread.authorize(credentials)
+
+try:
+    gc = get_gspread_client()
+    # Initial connection to get sheet list for admin config
+    # We use a hardcoded fallback or the current value
+    temp_url = "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit"
+    sh_init = gc.open_by_url(temp_url)
+    all_worksheets = [w.title for w in sh_init.worksheets()]
+except:
+    all_worksheets = ["H1 2026 Database", "UK Creator Request Form"]
+
+st.sidebar.divider()
+with st.sidebar.expander("Admin Configuration"):
+    SPREADSHEET_URL = st.text_input(
+        "Google Sheet URL", 
+        "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit?resourcekey=0-EdAPbTcONZTkWuJ46XHyzw&gid=349889363#gid=349889363"
+    )
+    
+    # Use selectboxes for easier configuration
+    db_default_idx = all_worksheets.index("H1 2026 Database") if "H1 2026 Database" in all_worksheets else 0
+    DATABASE_SHEET = st.selectbox("Database Worksheet", all_worksheets, index=db_default_idx)
+    
+    sub_default_idx = all_worksheets.index("UK Creator Request Form") if "UK Creator Request Form" in all_worksheets else (1 if len(all_worksheets) > 1 else 0)
+    SUBMISSIONS_SHEET = st.selectbox("Submissions Worksheet", all_worksheets, index=sub_default_idx)
 
 @st.cache_data(show_spinner=False)
 def get_yt_profile_pic(url):
@@ -298,14 +316,19 @@ elif page == "UK Creator Requests":
     st.subheader("🔒 Admin: Automate Shortlist")
     
     user_email = "placeholder@example.com" # We'll fix this to be dynamic later
-    authorized_users = ["your-email@example.com", "admin1@example.com"]
+    authorized_users = ["your-email@example.com", "admin1@example.com", "placeholder@example.com"]
     
     if user_email in authorized_users:
         st.success("Access Granted: Admin Mode")
         
         # --- TASK #3: THE AUTOMATION GAP ---
-        # Logic: Read 'Form_Submissions', match with 'Project_Atlas', save to 'Active_Shortlists'
         if st.button("Generate Shortlist from Last Submission"):
-            st.write("Processing... (This is where your magic code goes!)")
+            with st.spinner("Analyzing last submission and generating shortlist..."):
+                message, url = generate_shortlist(SPREADSHEET_URL, DATABASE_SHEET, SUBMISSIONS_SHEET)
+                if url:
+                    st.success(message)
+                    st.link_button("View New Shortlist", url)
+                else:
+                    st.error(message)
     else:
         st.warning("This section is restricted to authorized personnel.")
