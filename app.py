@@ -22,7 +22,7 @@ try:
             creds_dict = dict(creds_data)
 
         # Use a broader scope for better compatibility with User Credentials/ADC
-        scopes = ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
         
         # Detect type and load accordingly
         if creds_dict.get("type") == "service_account":
