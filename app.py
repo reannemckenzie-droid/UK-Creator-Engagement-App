@@ -99,28 +99,28 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SIDEBAR NAVIGATION ---
+# --- 3. SIDEBAR NAVIGATION & CONFIG ---
 st.sidebar.title("UK Creator Engagement")
 page = st.sidebar.radio("Navigation", ["Browse Creators", "UK Creator Requests"])
-
 st.sidebar.divider()
-try:
-    gc = get_gspread_client()
-    # Initial connection to get sheet list for admin config
-    temp_url = "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit"
-    sh_init = gc.open_by_url(temp_url)
-    all_worksheets = [w.title for w in sh_init.worksheets()]
-except Exception as e:
-    # If this fails, we provide fallback list
-    all_worksheets = ["H1 2026 Database", "UK Creator Request Form"]
 
+# Move the text input up so SPREADSHEET_URL exists first
 with st.sidebar.expander("Admin Configuration"):
     SPREADSHEET_URL = st.text_input(
         "Google Sheet URL", 
         "https://docs.google.com/spreadsheets/d/1wRUj7D5XhJJptRk4XzN84TnP01bovtLHy010EeHjXUk/edit?resourcekey=0-EdAPbTcONZTkWuJ46XHyzw&gid=349889363#gid=349889363"
     )
-    
-    # Use selectboxes for easier configuration
+
+# Now safely initialize the client with the variable the user provides
+try:
+    gc = get_gspread_client()
+    sh_init = gc.open_by_url(SPREADSHEET_URL) # Pass the actual variable, not temp_url
+    all_worksheets = [w.title for w in sh_init.worksheets()]
+except Exception as e:
+    all_worksheets = ["H1 2026 Database", "UK Creator Request Form"]
+
+# Build selectboxes out here using the freshly fetched worksheet array
+with st.sidebar.expander("Admin Configuration"):
     db_default_idx = all_worksheets.index("H1 2026 Database") if "H1 2026 Database" in all_worksheets else 0
     DATABASE_SHEET = st.selectbox("Database Worksheet", all_worksheets, index=db_default_idx)
     
